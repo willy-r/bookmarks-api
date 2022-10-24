@@ -5,11 +5,6 @@ import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot(),
-    AuthModule,
-    UserModule,
-    BookmarkModule,
-  ],
+  imports: [ConfigModule.forRoot(), AuthModule, UserModule, BookmarkModule],
 })
 export class AppModule {}

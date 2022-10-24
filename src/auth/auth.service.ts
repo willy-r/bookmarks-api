@@ -1,4 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotImplementedException } from '@nestjs/common';
 
 @Injectable()
-export class AuthService {}
+export class AuthService {
+  doSignIn() {
+    throw new NotImplementedException();
+  }
+
+  doSignUp() {
+    throw new NotImplementedException();
+  }
+}
