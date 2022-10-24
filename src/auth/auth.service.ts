@@ -1,4 +1,4 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
 @Injectable()
@@ -6,10 +6,10 @@ export class AuthService {
   constructor(private databaseService: DatabaseService) {}
 
   doSignIn() {
-    throw new NotImplementedException();
+    return 'I am signed in!';
   }
 
   doSignUp() {
-    throw new NotImplementedException();
+    return 'I am signed up!';
   }
 }
