@@ -7,8 +7,8 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signin')
-  signIn(@Body() dto: SignInAuthDto) {
-    return this.authService.doSignIn(dto);
+  async signIn(@Body() dto: SignInAuthDto) {
+    return await this.authService.doSignIn(dto);
   }
 
   @Post('signup')
