@@ -3,10 +3,14 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { DatabaseService } from '../database/database.service';
 import { SignInAuthDto, SignUpAuthDto } from './dto';
 import * as argon from 'argon2';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private jwt: JwtService,
+  ) {}
 
   async doSignIn(dto: SignInAuthDto) {
     // Find the user by email.
@@ -28,9 +32,8 @@ export class AuthService {
       throw new ForbiddenException('Password is incorrect');
     }
     
-    // Send back the user.
-    delete user.hashPassword;
-    return user;
+    // Send back the user in JWT format.
+    return this.signToken(user.id, user.email);
   }
 
   async doSignUp(dto: SignUpAuthDto) {
@@ -46,16 +49,29 @@ export class AuthService {
           lastName: dto.lastName,
         }
       });
-      // Delete hash from returned user.
-      delete user.hashPassword;
-      // Return the saved user.
-      return user;
+      return this.signToken(user.id, user.email);
     } catch (err) {
       // Treats unique constraint from Prisma.
       if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
         throw new ForbiddenException('Credentials not accepted')
       }
       throw err;
+    }
+  }
+
+  private async signToken(
+    userId: number, email: string
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      email,
+    }
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: process.env.TOKEN_EXPIRES,
+      secret: process.env.JWT_SECRET,
+    })
+    return {
+      access_token: token,
     }
   }
 }
