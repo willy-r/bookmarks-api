@@ -5,6 +5,7 @@ import { DatabaseService } from '../src/database/database.service';
 import { AppModule } from '../src/app.module';
 import { SignInAuthDto, SignUpAuthDto } from 'src/auth/dto';
 import { EditUserDto } from 'src/user/dto';
+import { CreateBookmarkDto, EditBookmarkDto } from 'src/bookmark/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -15,7 +16,7 @@ describe('App e2e', () => {
       imports: [AppModule],
     }).compile();
 
-    const PORT = 3001;
+    const PORT = 3002;
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -204,15 +205,161 @@ describe('App e2e', () => {
     });
   });
 
-  // describe('Bookmark', () => {
-  //   describe('Create bookmark', () => {});
+  describe.skip('Bookmark (problem on test configuration)', () => {
+    describe('Get empty bookmarks', () => {
+      it('should get empty bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK)
+          .expectJsonLength(0);
+      });
+    });
 
-  //   describe('Get bookmarks', () => {});
+    describe('Create bookmark', () => {
+      const dto: CreateBookmarkDto = {
+        title: 'Test',
+        link: 'https://example.com/',
+        description: 'Testing',
+      };
 
-  //   describe('Get bookmark by id', () => {});
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
 
-  //   describe('Edit bookmark by id', () => {});
+      it('should throw if missing required fields', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withJson({
+            description: dto.description,
+          })
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
 
-  //   describe('Delete bookmark by id', () => {});
-  // });
+      it('should create a bookmark for logged user', () => {
+        return pactum
+          .spec()
+          .post('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withJson(dto)
+          .expectStatus(HttpStatus.CREATED)
+          .stores('bookmarkId', 'id');
+      });
+    });
+
+    describe('Get bookmarks', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should get bookmarks', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK)
+          .expectJsonLength(1);
+      });
+    });
+
+    describe('Get bookmark by id', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should get bookmark by id', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK)
+          .expectBodyContains('$S{bookmarkId}');
+      });
+    });
+
+    describe('Edit bookmark by id', () => {
+      const dto: EditBookmarkDto = {
+        title: 'Edited',
+        link: 'https://edited.com',
+        description: 'Edited',
+      };
+
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should edit bookmark by id', () => {
+        return pactum
+          .spec()
+          .patch('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withJson(dto)
+          .expectStatus(HttpStatus.OK)
+          .expectBodyContains('$S{bookmarkId}')
+          .expectJsonLike(dto);
+      });
+    });
+
+    describe('Delete bookmark by id', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should delete bookmark by id', () => {
+        return pactum
+          .spec()
+          .delete('/bookmarks/{id}')
+          .withPathParams('id', '$S{bookmarkId}')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.NO_CONTENT);
+      });
+
+      it('should get empty bookmarks after deletion', () => {
+        return pactum
+          .spec()
+          .get('/bookmarks')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK)
+          .expectJsonLength(0);
+      });
+    });
+  });
 });
