@@ -18,7 +18,7 @@ export class AuthService {
     const user = await this.databaseService.user.findUnique({
       where: {
         email: dto.email,
-      }
+      },
     });
     // Guard condition.
     if (!user) {
@@ -31,14 +31,13 @@ export class AuthService {
     if (!passwordMatches) {
       throw new ForbiddenException('Password is incorrect');
     }
-    
-    // Send back the user in JWT format.
+
     return this.signToken(user.id, user.email);
   }
 
   async doSignUp(dto: SignUpAuthDto) {
     // Generate password hash.
-    const hashPassword = await argon.hash(dto.password)
+    const hashPassword = await argon.hash(dto.password);
     try {
       // Save user on db.
       const user = await this.databaseService.user.create({
@@ -47,31 +46,36 @@ export class AuthService {
           hashPassword,
           firstName: dto.firstName,
           lastName: dto.lastName,
-        }
+        },
       });
       return this.signToken(user.id, user.email);
     } catch (err) {
       // Treats unique constraint from Prisma.
-      if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
-        throw new ForbiddenException('Credentials not accepted')
+      if (
+        err instanceof PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new ForbiddenException('Credentials not accepted');
       }
       throw err;
     }
   }
 
   private async signToken(
-    userId: number, email: string
-  ): Promise<{ access_token: string }> {
+    userId: number,
+    email: string,
+  ): Promise<{ access_token: string; access_type: string }> {
     const payload = {
       sub: userId,
       email,
-    }
+    };
     const token = await this.jwt.signAsync(payload, {
       expiresIn: process.env.TOKEN_EXPIRES,
       secret: process.env.JWT_SECRET,
-    })
+    });
     return {
       access_token: token,
-    }
+      access_type: 'Bearer',
+    };
   }
 }

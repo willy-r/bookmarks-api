@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "git:lint:addall": "yarn lint && git add .",
     "db:dev:deploy": "prisma migrate deploy",
     "db:dev:rm": "docker compose rm -s -f -v dev_db",
     "db:dev:up": "docker compose up -d dev_db",
