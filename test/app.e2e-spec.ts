@@ -10,9 +10,8 @@ describe('App e2e', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .compile();
-    
+    }).compile();
+
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -26,8 +25,37 @@ describe('App e2e', () => {
   });
 
   afterAll(async () => {
+    // Closes database connection too.
     await app.close();
   });
 
-  it.todo('Should pass')
+  describe('Auth', () => {
+    describe('Signup', () => {
+      it.todo('Should signup');
+    });
+
+    describe('Signin', () => {
+      it.todo('Should signin');
+    });
+  });
+
+  describe('User', () => {
+    describe('Get me', () => {});
+
+    describe('Edit user', () => {});
+
+    describe('Delete user', () => {});
+  });
+
+  describe('Bookmark', () => {
+    describe('Create bookmark', () => {});
+
+    describe('Get bookmarks', () => {});
+
+    describe('Get bookmark by id', () => {});
+
+    describe('Edit bookmark', () => {});
+
+    describe('Delete bookmark', () => {});
+  });
 });
