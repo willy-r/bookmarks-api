@@ -25,9 +25,9 @@ export class SignUpAuthDto {
 
   @IsString()
   @IsOptional()
-  firstName: string = null;
+  firstName?: string;
 
   @IsString()
   @IsOptional()
-  lastName: string = null;
+  lastName?: string;
 }

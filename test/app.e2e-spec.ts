@@ -4,6 +4,7 @@ import * as pactum from 'pactum';
 import { DatabaseService } from '../src/database/database.service';
 import { AppModule } from '../src/app.module';
 import { SignInAuthDto, SignUpAuthDto } from 'src/auth/dto';
+import { EditUserDto } from 'src/user/dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -143,20 +144,75 @@ describe('App e2e', () => {
       });
     });
 
-    describe('Edit user', () => {});
+    describe('Edit user', () => {
+      const dto: EditUserDto = {
+        email: 'edited@gmail.com',
+        firstName: 'Edited',
+        lastName: 'Edited',
+      };
 
-    describe('Delete user', () => {});
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should throw if invalid email', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withJson({
+            email: 'test',
+          })
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+
+      it('should edit logged user', () => {
+        return pactum
+          .spec()
+          .patch('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .withJson(dto)
+          .expectStatus(HttpStatus.OK)
+          .expectJsonLike(dto);
+      });
+    });
+
+    describe('Delete user', () => {
+      it('should throw if not authenticated', () => {
+        return pactum
+          .spec()
+          .delete('/users')
+          .expectStatus(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should delete logged user', () => {
+        return pactum
+          .spec()
+          .delete('/users')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.NO_CONTENT);
+      });
+    });
   });
 
-  describe('Bookmark', () => {
-    describe('Create bookmark', () => {});
+  // describe('Bookmark', () => {
+  //   describe('Create bookmark', () => {});
 
-    describe('Get bookmarks', () => {});
+  //   describe('Get bookmarks', () => {});
 
-    describe('Get bookmark by id', () => {});
+  //   describe('Get bookmark by id', () => {});
 
-    describe('Edit bookmark by id', () => {});
+  //   describe('Edit bookmark by id', () => {});
 
-    describe('Delete bookmark by id', () => {});
-  });
+  //   describe('Delete bookmark by id', () => {});
+  // });
 });
